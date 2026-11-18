@@ -75,3 +75,23 @@ Avoid moving the cursor or editing the destination during a run. Stopping during
 Version 0.3 introduces a light writing canvas, a dark sidebar, a dedicated settings panel, and persistent session controls. Choose **Relaxed**, **Balanced**, or **Quick** to set the typing speed, then adjust it with the slider. The Mac app and Chrome extension share an orange A-and-cursor icon.
 
 After updating, quit and reopen the Mac app. In Chrome, reload the extension at `chrome://extensions`, close any old studio tabs, and reopen AutoTyper. The new sidebar displays **v0.3**. See [design and icon notes](docs/DESIGN.md) for asset generation and troubleshooting older copies.
+
+## Accessibility enabled, but typing is still blocked
+
+macOS grants permission to a specific signed app. An enabled entry can refer to an older build or another copy. AutoTyper now checks permission to post keyboard events without repeatedly showing the system prompt, and checks again when returning from Settings.
+
+If the entry is stale:
+
+1. Quit AutoTyper.
+2. Open **System Settings → Privacy & Security → Accessibility**.
+3. Select the old AutoTyper entry and remove it with **−**.
+4. Use **+** to add `/Applications/AutoTyper.app`, then enable it.
+5. Reopen the installed app and try Start again.
+
+The build script signs and verifies the complete app bundle. By default it uses a local ad hoc signature; macOS may require permission again after a rebuild. To retain a certificate-backed identity across updates, configure a code-signing certificate and build every release with the same identity:
+
+```sh
+AUTOTYPER_SIGNING_IDENTITY="Your signing identity" ./scripts/build.sh
+```
+
+The app cannot grant its own Accessibility permission or silently transfer an older build's approval.

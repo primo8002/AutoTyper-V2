@@ -31,6 +31,8 @@ final class TyperModel: ObservableObject {
     @Published var progress = 0
     @Published var state: RunState = .ready
     @Published var notice = "Paste text, choose a pace, then press Start."
+    @Published var needsPermission = false
+    @Published var permissionRequested = false
 
     private var runTask: Task<Void, Never>?
     private var hotKey: EventHotKeyRef?
@@ -38,6 +40,34 @@ final class TyperModel: ObservableObject {
     private let hotKeyID = EventHotKeyID(signature: OSType(0x41545950), id: 1)
 
     init() { installEmergencyHotKey() }
+
+    // Check the capability we actually use (CGEvent posting), without asking
+    // macOS to display another permission prompt on every Start click.
+    @discardableResult
+    func refreshPermission() -> Bool {
+        let allowed = CGPreflightPostEventAccess()
+        if allowed && needsPermission {
+            needsPermission = false
+            notice = "Keyboard access is ready. Click Start when you are ready."
+        }
+        return allowed
+    }
+
+    func requestPermission() {
+        guard !refreshPermission(), !permissionRequested else { return }
+        permissionRequested = true
+        _ = CGRequestPostEventAccess()
+        refreshPermission()
+    }
+
+    func openAccessibilitySettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    func revealRunningApp() {
+        NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+    }
 
     var characterCount: Int { text.count }
     var estimatedSeconds: Int {
@@ -67,9 +97,9 @@ final class TyperModel: ObservableObject {
             notice = "Add some text to begin."
             return
         }
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        guard AXIsProcessTrustedWithOptions(options) else {
-            notice = "Allow AutoTyper in System Settings → Privacy & Security → Accessibility, then try again."
+        guard refreshPermission() else {
+            needsPermission = true
+            notice = "macOS has not granted keyboard access to this copy of AutoTyper."
             return
         }
         let snapshot = Array(text)
@@ -300,6 +330,34 @@ struct AutoTyperView: View {
             }
         }
         .frame(minWidth: 1000, minHeight: 660)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            model.refreshPermission()
+        }
+        .sheet(isPresented: $model.needsPermission) {
+            VStack(alignment: .leading, spacing: 18) {
+                Label("Keyboard access", systemImage: "hand.raised")
+                    .font(.system(size: 22, weight: .semibold))
+                Text("macOS has not authorized the app that is currently running.")
+                Text("If AutoTyper is already enabled in Accessibility, its entry may belong to an older build. Quit AutoTyper, remove its old entry with the − button, then use + to add AutoTyper from Applications and enable it. Reopen the app afterward.")
+                    .font(.system(size: 13)).foregroundStyle(Palette.muted).fixedSize(horizontal: false, vertical: true)
+                Text(Bundle.main.bundlePath).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                HStack {
+                    Button("Request access", action: model.requestPermission).disabled(model.permissionRequested)
+                    Button("Open Settings", action: model.openAccessibilitySettings)
+                    Button("Show this copy", action: model.revealRunningApp)
+                }
+                HStack {
+                    Button("Check again") {
+                        if !model.refreshPermission() {
+                            model.notice = "Access is still unavailable. Re-add the installed app, then quit and reopen it."
+                        }
+                    }
+                    Spacer()
+                    Button("Close") { model.needsPermission = false }
+                }
+            }.padding(28).frame(width: 540).foregroundStyle(Palette.ink)
+                .background(Palette.background).preferredColorScheme(.light)
+        }
     }
 
     private var sidebar: some View {
