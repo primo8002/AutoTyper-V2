@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "AutoTyper V2 — Background Tabs",
+  "version": "0.2.0",
+  "description": "Type supplied text into one selected browser editor while you work in other tabs.",
+  "minimum_chrome_version": "118",
+  "permissions": ["debugger", "tabs", "storage"],
+  "background": { "service_worker": "worker.js", "type": "module" },
+  "action": { "default_title": "Type into this tab" },
+  "options_page": "studio.html",
+  "commands": {
+    "stop-typing": {
+      "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
+      "description": "Stop AutoTyper's browser session"
+    }
+  }
+}
