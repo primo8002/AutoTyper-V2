@@ -4,10 +4,12 @@ import ApplicationServices
 import Carbon
 
 private enum Palette {
-    static let background = Color(red: 0.045, green: 0.055, blue: 0.085)
-    static let panel = Color(red: 0.085, green: 0.105, blue: 0.15)
-    static let accent = Color(red: 0.62, green: 0.90, blue: 0.80)
-    static let muted = Color(red: 0.60, green: 0.67, blue: 0.70)
+    static let background = Color(red: 0.97, green: 0.96, blue: 0.94)
+    static let panel = Color.white
+    static let accent = Color(red: 0.84, green: 0.28, blue: 0.13)
+    static let muted = Color(red: 0.42, green: 0.43, blue: 0.44)
+    static let ink = Color(red: 0.14, green: 0.16, blue: 0.17)
+    static let rail = Color(red: 0.10, green: 0.13, blue: 0.14)
 }
 
 private extension Character {
@@ -248,186 +250,210 @@ final class TyperModel: ObservableObject {
     }
 }
 
-private struct Surface<Content: View>: View {
-    @ViewBuilder var content: Content
+private struct BrandIcon: View {
     var body: some View {
-        content.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(LinearGradient(colors: [Palette.panel, Palette.panel.opacity(0.78)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.08)))
-            .shadow(color: .black.opacity(0.12), radius: 16, y: 8)
+        if let url = Bundle.main.url(forResource: "AutoTyper", withExtension: "png"), let icon = NSImage(contentsOf: url) {
+            Image(nsImage: icon).resizable().aspectRatio(contentMode: .fit)
+        } else {
+            Image(systemName: "character.cursor.ibeam").foregroundStyle(Palette.accent)
+        }
     }
 }
 
 struct AutoTyperView: View {
     @StateObject private var model = TyperModel()
     var body: some View {
-        ZStack {
-            LinearGradient(colors: [Color(red: 0.08, green: 0.13, blue: 0.17), Palette.background, Palette.background], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text("AUTOTYPER  /  DESKTOP").font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .tracking(2.5).foregroundStyle(Palette.accent)
-                            Text("Your words. In motion.").font(.system(size: 35, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white)
-                            Text("Set your rhythm. Let the words flow.").font(.system(size: 14))
-                                .foregroundStyle(Palette.muted)
-                        }
-                        Spacer()
-                        Image(systemName: "keyboard.badge.ellipsis").font(.system(size: 29))
-                            .foregroundStyle(Palette.accent).frame(width: 62, height: 62)
-                            .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 17))
-                    }.padding(.bottom, 3)
-
-                    Surface {
-                        VStack(alignment: .leading, spacing: 13) {
-                            HStack {
-                                Label("YOUR TEXT", systemImage: "text.alignleft")
-                                    .font(.system(size: 11, weight: .bold, design: .monospaced)).tracking(1.5)
-                                    .foregroundStyle(Palette.muted)
-                                Spacer()
-                                Text("\(model.characterCount) characters").font(.system(size: 12, design: .monospaced))
-                                    .foregroundStyle(Palette.muted)
-                            }
-                            ZStack(alignment: .topLeading) {
-                                if model.text.isEmpty {
-                                    Text("Paste or write the text you want to type…")
-                                        .foregroundStyle(Palette.muted.opacity(0.7)).padding(.top, 9).padding(.leading, 5)
-                                }
-                                TextEditor(text: $model.text).scrollContentBackground(.hidden)
-                                    .font(.system(size: 15, design: .rounded)).foregroundStyle(.white)
-                                    .disabled(model.isBusy)
-                            }
-                            .frame(minHeight: 145)
-                            .padding(12)
-                            .background(Palette.background.opacity(0.75), in: RoundedRectangle(cornerRadius: 13))
-                        }
-                    }
-
-                    Surface {
-                        VStack(alignment: .leading, spacing: 19) {
-                            HStack {
-                                Label("Typing rhythm", systemImage: "waveform.path").font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
-                                Spacer()
-                                Text("\(Int(model.wpm)) WPM").font(.system(size: 15, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(Palette.accent)
-                            }
-                            Slider(value: $model.wpm, in: 15...150, step: 1).tint(Palette.accent)
-                            HStack {
-                                Text("15 · thoughtful")
-                                Spacer()
-                                Text("150 · fast")
-                            }.font(.system(size: 11, design: .monospaced)).foregroundStyle(Palette.muted)
-                            Divider().overlay(.white.opacity(0.08))
-                            Toggle(isOn: $model.mistakes) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Mistakes & corrections").font(.system(size: 14, weight: .medium)).foregroundStyle(.white)
-                                    Text("Occasional nearby-key slips, then Backspace and repair.")
-                                        .font(.system(size: 12)).foregroundStyle(Palette.muted)
-                                }
-                            }.toggleStyle(.switch).tint(Palette.accent)
-                            if model.mistakes {
-                                HStack {
-                                    Text("Frequency").foregroundStyle(Palette.muted)
-                                    Slider(value: $model.mistakeRate, in: 0.5...6, step: 0.5).tint(Palette.accent)
-                                    Text("\(model.mistakeRate, specifier: "%.1f")%")
-                                        .frame(width: 44, alignment: .trailing).foregroundStyle(Palette.accent)
-                                }.font(.system(size: 12, design: .monospaced))
-                            }
-                            Toggle("Natural pauses after punctuation and paragraphs", isOn: $model.naturalPauses)
-                                .toggleStyle(.switch).tint(Palette.accent).font(.system(size: 13))
-                                .foregroundStyle(.white)
-                        }
-                    }
-
-                    Surface {
-                        VStack(alignment: .leading, spacing: 14) {
-                            HStack {
-                                Circle().fill(Palette.accent).frame(width: 7, height: 7)
-                                Text(model.statusLabel).font(.system(size: 11, weight: .bold, design: .monospaced))
-                                    .tracking(1.8).foregroundStyle(Palette.accent)
-                                Spacer()
-                                Text(model.characterCount == 0 ? "—" : "≈ \(model.estimatedSeconds / 60)m \(model.estimatedSeconds % 60)s")
-                                    .font(.system(size: 12, design: .monospaced)).foregroundStyle(Palette.muted)
-                            }
-                            if case .countdown(let seconds) = model.state {
-                                HStack(spacing: 12) {
-                                    Text("\(seconds)").font(.system(size: 42, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Palette.accent).contentTransition(.numericText())
-                                    Text("seconds until typing begins\nClick the destination text field now.")
-                                        .font(.system(size: 13)).foregroundStyle(.white)
-                                }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Palette.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
-                            }
-                            Text(model.notice).font(.system(size: 12)).foregroundStyle(Palette.muted)
-                            if model.characterCount > 0 {
-                                ProgressView(value: Double(model.progress), total: Double(model.characterCount))
-                                    .tint(Palette.accent)
-                            }
-                            Text("Emergency stop: ⌃⌥⌘ Esc · Keep the destination focused while typing")
-                                .font(.system(size: 11)).foregroundStyle(Palette.muted)
-                        }
-                    }
-                }.padding(26).frame(maxWidth: 780)
-            }
+        HStack(spacing: 0) {
+            sidebar
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Workspace").foregroundStyle(Palette.muted)
+                    Text("/").foregroundStyle(.gray.opacity(0.4))
+                    Text("New session").fontWeight(.medium)
+                    Spacer()
+                    Label("On your Mac", systemImage: "desktopcomputer").foregroundStyle(Palette.muted)
+                }.font(.system(size: 12)).padding(.horizontal, 28).frame(height: 56)
+                Divider()
+                HStack(alignment: .top, spacing: 0) {
+                    editor
+                    Divider()
+                    settings
+                }
+                Divider()
+                runBar
+            }.background(Palette.background)
         }
+        .foregroundStyle(Palette.ink)
+        .preferredColorScheme(.light)
         .overlay {
             if case .countdown(let seconds) = model.state {
                 ZStack {
-                    Palette.background.opacity(0.84)
-                    VStack(spacing: 16) {
-                        Image(systemName: "cursorarrow.and.square.on.square.dashed")
-                            .font(.system(size: 34)).foregroundStyle(Palette.accent)
-                        Text("Typing starts in \(seconds)")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white).contentTransition(.numericText())
-                        Text("Switch to the destination app and click the text field.")
-                            .font(.system(size: 14)).foregroundStyle(Palette.muted)
-                        Text("Press ⌃⌥⌘ Esc to cancel")
-                            .font(.system(size: 11, design: .monospaced)).foregroundStyle(Palette.accent)
+                    Color.black.opacity(0.48)
+                    VStack(spacing: 18) {
+                        Text("GET READY").font(.system(size: 11, weight: .bold)).tracking(2).foregroundStyle(Palette.accent)
+                        Text("\(seconds)").font(.system(size: 88, weight: .light, design: .rounded)).monospacedDigit()
+                        Text("Click your destination").font(.system(size: 24, weight: .semibold))
+                        Text("Typing begins when the countdown ends.").foregroundStyle(Palette.muted)
+                        Button("Cancel countdown", action: model.stop).buttonStyle(SecondaryButton())
+                    }.padding(40).frame(width: 410).background(Palette.background, in: RoundedRectangle(cornerRadius: 22))
+                }
+            }
+        }
+        .frame(minWidth: 1000, minHeight: 660)
+    }
+
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 9) {
+                BrandIcon().frame(width: 34, height: 34)
+                Text("AutoTyper").font(.system(size: 17, weight: .semibold))
+            }.padding(.top, 24).padding(.bottom, 38)
+            Text("WORKSPACE").font(.system(size: 10, weight: .semibold)).tracking(1.5).foregroundStyle(.white.opacity(0.4)).padding(.bottom, 12)
+            Label("Typing studio", systemImage: "square.and.pencil")
+                .font(.system(size: 13, weight: .medium)).padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 9))
+            Spacer()
+            VStack(alignment: .leading, spacing: 10) {
+                Image(systemName: "keyboard").font(.system(size: 23)).foregroundStyle(Color(red: 0.98, green: 0.64, blue: 0.43))
+                Text("Find your flow.").font(.system(size: 17, weight: .medium))
+                Text("Your words, at your pace.").font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
+            }.padding(.bottom, 30)
+            Divider().overlay(.white.opacity(0.1))
+            HStack { Text("DESKTOP"); Spacer(); Text("v0.3") }
+                .font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(1).foregroundStyle(.white.opacity(0.45)).padding(.top, 18)
+        }.padding(20).frame(width: 180).frame(maxHeight: .infinity).foregroundStyle(.white).background(Palette.rail)
+    }
+
+    private var editor: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 7) {
+                Text("Make room for your words.").font(.system(size: 28, weight: .semibold)).tracking(-0.8)
+                Text("Add your text. Set the rhythm. We'll take it from here.").font(.system(size: 12)).foregroundStyle(Palette.muted)
+            }.padding(.bottom, 4)
+            VStack(spacing: 0) {
+                HStack {
+                    Label("Draft", systemImage: "doc.text").font(.system(size: 12, weight: .medium))
+                    Spacer()
+                    Text("PLAIN TEXT").font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(1).foregroundStyle(Palette.muted)
+                }.padding(16)
+                Divider()
+                ZStack(alignment: .topLeading) {
+                    if model.text.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Start with a few words…").font(.system(size: 22, design: .serif))
+                            Text("Paste your draft here, or write something new.")
+                                .font(.system(size: 13)).foregroundStyle(Palette.muted)
+                        }.padding(22).allowsHitTesting(false)
                     }
-                    .padding(35).frame(maxWidth: 440)
-                    .background(Palette.panel, in: RoundedRectangle(cornerRadius: 22))
-                    .overlay(RoundedRectangle(cornerRadius: 22).stroke(Palette.accent.opacity(0.28)))
+                    TextEditor(text: $model.text).scrollContentBackground(.hidden)
+                        .font(.system(size: 16)).lineSpacing(7).padding(16).disabled(model.isBusy)
+                }.frame(maxHeight: .infinity)
+                Divider()
+                HStack {
+                    Text("\(model.text.split(whereSeparator: { $0.isWhitespace }).count) words")
+                    Text("·")
+                    Text("\(model.characterCount) characters")
+                    Spacer()
+                    Button("Clear", action: { model.text = "" }).buttonStyle(.plain).disabled(model.isBusy || model.text.isEmpty)
+                }.font(.system(size: 11)).foregroundStyle(Palette.muted).padding(14)
+            }.background(.white, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.08)))
+            HStack(spacing: 8) {
+                Image(systemName: "cursorarrow.click")
+                Text("You'll have 5 seconds to select your destination.")
+            }.font(.system(size: 11)).foregroundStyle(Palette.muted)
+        }.padding(26).frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var settings: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 23) {
+                Text("SESSION SETTINGS").font(.system(size: 10, weight: .semibold)).tracking(1.3).foregroundStyle(Palette.muted)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Typing speed").font(.system(size: 13, weight: .medium))
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("\(Int(model.wpm))").font(.system(size: 48, weight: .light)).monospacedDigit()
+                        Text("words / min").font(.system(size: 12)).foregroundStyle(Palette.muted)
+                    }
+                    Slider(value: $model.wpm, in: 15...150, step: 1).tint(Palette.accent)
+                    HStack { Text("15 · Slow"); Spacer(); Text("150 · Fast") }.font(.system(size: 10)).foregroundStyle(Palette.muted)
+                    HStack(spacing: 6) {
+                        preset("Relaxed", 35)
+                        preset("Balanced", 60)
+                        preset("Quick", 100)
+                    }
                 }
-                .allowsHitTesting(false)
-            }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            HStack(spacing: 10) {
-                Button(action: model.start) {
-                    Label("Start typing", systemImage: "play.fill").frame(maxWidth: .infinity)
-                }.buttonStyle(PrimaryButton()).disabled(model.isBusy)
-                if model.isBusy {
-                    Button(model.state == .paused ? "Resume" : "Pause", action: model.pauseOrResume)
-                        .buttonStyle(SecondaryButton())
-                        .disabled({ if case .countdown = model.state { return true }; return false }())
-                    Button("Stop", action: model.stop).buttonStyle(SecondaryButton())
+                Divider()
+                VStack(alignment: .leading, spacing: 14) {
+                    Toggle("Mistakes & fixes", isOn: $model.mistakes).toggleStyle(.switch).tint(Palette.accent).font(.system(size: 12, weight: .medium))
+                    Text("A few slips. A quick correction. A more natural rhythm.").font(.system(size: 11)).foregroundStyle(Palette.muted).fixedSize(horizontal: false, vertical: true)
+                    if model.mistakes {
+                        HStack { Text("Frequency"); Spacer(); Text("\(model.mistakeRate, specifier: "%.1f")%").monospacedDigit() }.font(.system(size: 11))
+                        Slider(value: $model.mistakeRate, in: 0.5...6, step: 0.5).tint(Palette.accent)
+                    }
                 }
+                Divider()
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle("Natural pauses", isOn: $model.naturalPauses).toggleStyle(.switch).tint(Palette.accent).font(.system(size: 12, weight: .medium))
+                    Text("A breath between sentences and paragraphs.").font(.system(size: 11)).foregroundStyle(Palette.muted)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Estimated duration", systemImage: "clock").font(.system(size: 11)).foregroundStyle(Palette.muted)
+                    Text(model.characterCount == 0 ? "—" : "\(model.estimatedSeconds / 60)m \(model.estimatedSeconds % 60)s")
+                        .font(.system(size: 24, weight: .medium)).monospacedDigit()
+                    Text("Plus pauses and corrections").font(.system(size: 10)).foregroundStyle(Palette.muted)
+                }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 10))
+            }.padding(22)
+        }.frame(width: 270).background(Color.white.opacity(0.45))
+    }
+
+    private func preset(_ name: String, _ speed: Double) -> some View {
+        Button(name) { model.wpm = speed }
+            .font(.system(size: 10, weight: .medium)).buttonStyle(.plain)
+            .padding(.vertical, 8).frame(maxWidth: .infinity)
+            .background(model.wpm == speed ? Palette.accent.opacity(0.1) : .white, in: RoundedRectangle(cornerRadius: 6))
+            .foregroundStyle(model.wpm == speed ? Palette.accent : Palette.muted)
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(.black.opacity(0.07)))
+    }
+
+    private var runBar: some View {
+        HStack(spacing: 18) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 7) {
+                    Circle().fill(model.isBusy ? Palette.accent : Color(red: 0.23, green: 0.48, blue: 0.38)).frame(width: 6, height: 6)
+                    Text(model.statusLabel).font(.system(size: 10, weight: .semibold)).tracking(1)
+                    if model.isBusy { Text("\(model.progress) / \(model.characterCount)").font(.system(size: 10)).foregroundStyle(Palette.muted) }
+                }
+                Text(model.notice).font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(2)
+                Text("Emergency stop  ⌃⌥⌘ Esc").font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
             }
-            .frame(maxWidth: 720)
-            .padding(.horizontal, 30).padding(.vertical, 14)
-            .background(Palette.background.opacity(0.97))
-        }
-        .frame(minWidth: 610, minHeight: 700)
+            Spacer(minLength: 8)
+            if model.isBusy {
+                Button(model.state == .paused ? "Resume" : "Pause", action: model.pauseOrResume)
+                    .buttonStyle(SecondaryButton()).disabled({ if case .countdown = model.state { return true }; return false }())
+                Button("Stop", action: model.stop).buttonStyle(PrimaryButton())
+            } else {
+                Button(action: model.start) { Label("Start typing", systemImage: "play.fill") }
+                    .buttonStyle(PrimaryButton()).disabled(model.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }.padding(.horizontal, 26).padding(.vertical, 18).background(.white)
     }
 }
 
 private struct PrimaryButton: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.background)
-            .padding(.vertical, 13).padding(.horizontal, 18)
-            .background(Palette.accent.opacity(configuration.isPressed ? 0.75 : 1), in: RoundedRectangle(cornerRadius: 11))
-            .opacity(isEnabled ? 1 : 0.38)
+        configuration.label.font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+            .padding(.vertical, 13).padding(.horizontal, 22)
+            .background(Palette.accent.opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: 8))
+            .opacity(isEnabled ? 1 : 0.4)
     }
 }
 private struct SecondaryButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
-            .padding(.vertical, 13).padding(.horizontal, 18)
-            .background(.white.opacity(configuration.isPressed ? 0.15 : 0.09), in: RoundedRectangle(cornerRadius: 11))
+        configuration.label.font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.ink)
+            .padding(.vertical, 12).padding(.horizontal, 18)
+            .background(Color.black.opacity(configuration.isPressed ? 0.09 : 0.04), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -437,6 +463,6 @@ struct AutoTyperApp: App {
         WindowGroup { AutoTyperView() }
             .windowStyle(.hiddenTitleBar)
             .windowResizability(.contentMinSize)
-            .defaultSize(width: 720, height: 850)
+            .defaultSize(width: 1100, height: 760)
     }
 }

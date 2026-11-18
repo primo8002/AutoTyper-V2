@@ -1,2 +1,5 @@
 dist/
 .DS_Store
+output/
+.playwright-cli/
+assets/AutoTyper.iconset/

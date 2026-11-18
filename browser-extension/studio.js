@@ -18,7 +18,11 @@ function updateLabels() {
   const draft = session();
   const count = graphemes(draft.text).length;
   $("count").textContent = `${count.toLocaleString()} characters`;
-  $("wpm-value").textContent = `${draft.wpm} WPM`;
+  $("wpm-value").replaceChildren(document.createTextNode(String(draft.wpm)), Object.assign(document.createElement("span"), { textContent: " words / min" }));
+  document.querySelectorAll("[data-speed]").forEach(button => {
+    button.setAttribute("aria-pressed", String(Number(button.dataset.speed) === draft.wpm));
+    button.disabled = isBusy();
+  });
   $("rate-value").textContent = `${draft.mistakeRate.toFixed(1)}%`;
   $("frequency").hidden = !draft.mistakes;
   const seconds = Math.ceil(count * 12 / draft.wpm);
@@ -108,3 +112,10 @@ try {
   const stop = (await chrome.commands.getAll()).find(command => command.name === "stop-typing");
   $("shortcut").textContent = stop?.shortcut || "Set in chrome://extensions/shortcuts";
 } catch (error) { showError(error); }
+
+for (const button of document.querySelectorAll("[data-speed]")) {
+  button.addEventListener("click", () => {
+    $("wpm").value = button.dataset.speed;
+    updateLabels(); saveDraft();
+  });
+}

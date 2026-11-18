@@ -69,3 +69,9 @@ Avoid moving the cursor or editing the destination during a run. Stopping during
 - `Sources/AutoTyper.swift` — native app interface and typing engine.
 - `browser-extension/` — browser studio, background worker, and typing engine.
 - `scripts/build.sh` — builds `dist/AutoTyper.app`.
+
+## Interface and app icon
+
+Version 0.3 introduces a light writing canvas, a dark sidebar, a dedicated settings panel, and persistent session controls. Choose **Relaxed**, **Balanced**, or **Quick** to set the typing speed, then adjust it with the slider. The Mac app and Chrome extension share an orange A-and-cursor icon.
+
+After updating, quit and reopen the Mac app. In Chrome, reload the extension at `chrome://extensions`, close any old studio tabs, and reopen AutoTyper. The new sidebar displays **v0.3**. See [design and icon notes](docs/DESIGN.md) for asset generation and troubleshooting older copies.

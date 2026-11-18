@@ -1,56 +1,42 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AutoTyper · Background tabs</title>
-  <link rel="stylesheet" href="studio.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoTyper · Typing studio</title><link rel="icon" href="icons/icon-32.png"><link rel="stylesheet" href="studio.css">
 </head>
 <body>
-  <main>
-    <header><div class="brand-mark" aria-hidden="true">⌨</div><span class="eyebrow">AUTOTYPER / BROWSER STUDIO</span><h1>Your words. In motion.</h1><p>A little rhythm. A lot more freedom. Type into one tab while you work anywhere.</p></header>
-    <section class="card target">
-      <div class="section-title"><h2>01 / Destination</h2><button id="refresh" class="quiet" type="button">Refresh tabs</button></div>
-      <label for="target">Type into this tab</label>
-      <select id="target"></select>
-      <p class="hint">First click the insertion point in your document, then click the AutoTyper extension icon. Once started, this destination stays locked even when you switch tabs.</p>
-      <p class="hint">Google Docs support is experimental. Start with a short sample in a blank document. Leave the document open and avoid editing it during a run.</p>
-    </section>
-    <div class="columns">
-      <section class="card">
-        <div class="section-title"><h2>02 / Your text</h2><span id="count" class="mono">0 characters</span></div>
-        <label for="text" class="sr-only">Text to type</label>
-        <textarea id="text" placeholder="Paste the text you want to type…" spellcheck="false"></textarea>
-        <div class="section-title"><button id="import" class="quiet" type="button">Import session JSON</button><button id="clear" class="quiet" type="button">Clear draft</button></div>
+<aside class="rail">
+  <div class="brand"><img src="icons/icon-128.png" alt="" width="36" height="36"><span>AutoTyper</span></div>
+  <span class="rail-label">WORKSPACE</span><a class="nav-active" href="#text"><span aria-hidden="true">▤</span> Typing studio</a>
+  <div class="rail-bottom"><div class="flow-mark" aria-hidden="true">Aa<span>│</span></div><h2>Find your flow.</h2><p>Your words, at your pace.</p><div class="version"><span>BROWSER</span><span>v0.3</span></div></div>
+</aside>
+<main>
+  <header><div class="breadcrumb"><span>Workspace</span><span>/</span><strong>New session</strong></div><span class="mode"><i></i> Background typing</span></header>
+  <div class="workspace">
+    <section class="writing">
+      <div class="heading"><h1>Make room for your words.</h1><p>Add your text. Set the rhythm. We'll take it from here.</p></div>
+      <div class="destination-card"><div class="destination-label"><label for="target">DESTINATION</label><button id="refresh" class="text-button" type="button">↻ Refresh tabs</button></div><select id="target"></select><p>Click the insertion point in your document before opening AutoTyper.</p></div>
+      <div class="document">
+        <div class="document-toolbar"><span>▤ &nbsp; Draft</span><span class="document-kind">PLAIN TEXT</span></div>
+        <label for="text" class="sr-only">Text to type</label><textarea id="text" placeholder="Start with a few words…&#10;&#10;Paste your draft here, or write something new." spellcheck="false"></textarea>
+        <div class="document-footer"><span id="count">0 characters</span><div><button id="import" class="text-button" type="button">Import JSON</button><button id="clear" class="text-button" type="button">Clear</button></div></div>
         <input id="file" type="file" accept="application/json,.json" hidden>
-        <p class="hint">Drafts stay in this browser session. Closing Chrome clears them. Text goes only to the destination you choose.</p>
-      </section>
-      <section class="card">
-        <h2>03 / Rhythm</h2>
-        <div class="section-title"><label for="wpm">Typing speed</label><output id="wpm-value">60 WPM</output></div>
-        <input id="wpm" type="range" min="15" max="150" step="1" value="60">
-        <div class="range-labels"><span>Thoughtful</span><span>Fast</span></div>
-        <label class="toggle"><span>Mistakes & corrections<small>Nearby-key slips, then Backspace and repair.</small></span><input id="mistakes" type="checkbox" checked></label>
-        <div id="frequency">
-          <div class="section-title"><label for="mistake-rate">Mistake frequency</label><output id="rate-value">2.0%</output></div>
-          <input id="mistake-rate" type="range" min="0.5" max="6" step="0.5" value="2">
-        </div>
-        <label class="toggle"><span>Natural pauses<small>Room to breathe between sentences.</small></span><input id="pauses" type="checkbox" checked></label>
-        <p id="estimate" class="hint">Add text to estimate the duration.</p>
-      </section>
-    </div>
-    <section class="card status" aria-live="polite">
-      <div class="section-title"><span id="state" class="eyebrow">READY</span><span id="progress-label" class="mono"></span></div>
-      <strong id="destination"></strong>
-      <p id="message">Click inside the destination editor, then open AutoTyper from that tab.</p>
-      <progress id="progress" value="0" max="1"></progress>
-      <p id="error" role="alert" hidden></p>
+      </div>
+      <p class="privacy-note"><span aria-hidden="true">◇</span> Your draft stays in this browser session. No AutoTyper account needed.</p>
     </section>
-    <footer>
-      <div class="actions"><button id="start" class="primary" type="button">▶ Start in 5 seconds</button><button id="pause" type="button" disabled>Pause</button><button id="stop" type="button" disabled>Stop</button></div>
-      <p>Emergency stop in Chrome: <kbd id="shortcut">⌘ ⇧ Y</kbd> · Keep Chrome running and your Mac awake.</p>
-    </footer>
-  </main>
-  <script type="module" src="studio.js"></script>
-</body>
-</html>
+    <aside class="settings">
+      <h2>SESSION SETTINGS</h2>
+      <section class="speed-section"><label for="wpm">Typing speed</label><output id="wpm-value">60 WPM</output><input id="wpm" type="range" min="15" max="150" step="1" value="60"><div class="range-labels"><span>15 · Slow</span><span>150 · Fast</span></div><div class="presets"><button type="button" data-speed="35">Relaxed</button><button type="button" data-speed="60">Balanced</button><button type="button" data-speed="100">Quick</button></div></section>
+      <section class="setting-section"><label class="toggle" for="mistakes"><span>Mistakes & fixes</span><input id="mistakes" type="checkbox" checked></label><p>A few slips. A quick correction.<br>A more natural rhythm.</p><div id="frequency"><div class="frequency-label"><label for="mistake-rate">Frequency</label><output id="rate-value">2.0%</output></div><input id="mistake-rate" type="range" min="0.5" max="6" step="0.5" value="2"></div></section>
+      <section class="setting-section"><label class="toggle" for="pauses"><span>Natural pauses</span><input id="pauses" type="checkbox" checked></label><p>A breath between sentences<br>and paragraphs.</p></section>
+      <div class="estimate-card"><span>◷ &nbsp; Estimated duration</span><p id="estimate">Add text to estimate the duration.</p></div>
+      <details><summary>Before you start</summary><p>Keep the destination tab open and avoid editing it during a run. You can use other tabs or apps.</p><p>Google Docs support is experimental. Try a short sample in a blank document first.</p><p>Keep Chrome running and your computer awake.</p></details>
+    </aside>
+  </div>
+  <footer>
+    <div class="session-status" aria-live="polite"><div class="status-line"><i></i><span id="state">READY</span><span id="progress-label"></span></div><strong id="destination"></strong><p id="message">Choose a destination and add your text to begin.</p><progress id="progress" value="0" max="1"></progress><p id="error" role="alert" hidden></p><div class="shortcut">Emergency stop in Chrome <kbd id="shortcut">⌘ ⇧ Y</kbd></div></div>
+    <div class="actions"><button id="pause" type="button" disabled>Pause</button><button id="stop" type="button" disabled>Stop</button><button id="start" class="primary" type="button">▶ Start in 5 seconds</button></div>
+  </footer>
+</main>
+<script type="module" src="studio.js"></script>
+</body></html>

@@ -3,9 +3,10 @@ set -euo pipefail
 
 repo_dir="${0:A:h:h}"
 app_dir="$repo_dir/dist/AutoTyper.app"
-mkdir -p "$app_dir/Contents/MacOS"
+mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources"
 swiftc -parse-as-library -O \
   -framework SwiftUI -framework AppKit -framework ApplicationServices -framework Carbon \
   "$repo_dir/Sources/AutoTyper.swift" -o "$app_dir/Contents/MacOS/AutoTyper"
 cp "$repo_dir/Info.plist" "$app_dir/Contents/Info.plist"
+cp "$repo_dir/assets/AutoTyper.icns" "$repo_dir/assets/AutoTyper.png" "$app_dir/Contents/Resources/"
 echo "$app_dir"
