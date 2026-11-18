@@ -8,7 +8,7 @@
 </head>
 <body>
   <main>
-    <header><span class="eyebrow">AUTOTYPER / BROWSER STUDIO</span><h1>Keep your words moving.</h1><p>One destination. Your attention, anywhere.</p></header>
+    <header><div class="brand-mark" aria-hidden="true">⌨</div><span class="eyebrow">AUTOTYPER / BROWSER STUDIO</span><h1>Your words. In motion.</h1><p>A little rhythm. A lot more freedom. Type into one tab while you work anywhere.</p></header>
     <section class="card target">
       <div class="section-title"><h2>01 / Destination</h2><button id="refresh" class="quiet" type="button">Refresh tabs</button></div>
       <label for="target">Type into this tab</label>
@@ -21,7 +21,7 @@
         <div class="section-title"><h2>02 / Your text</h2><span id="count" class="mono">0 characters</span></div>
         <label for="text" class="sr-only">Text to type</label>
         <textarea id="text" placeholder="Paste the text you want to type…" spellcheck="false"></textarea>
-        <div class="section-title"><button id="import" class="quiet" type="button">Import from Mac app</button><button id="clear" class="quiet" type="button">Clear draft</button></div>
+        <div class="section-title"><button id="import" class="quiet" type="button">Import session JSON</button><button id="clear" class="quiet" type="button">Clear draft</button></div>
         <input id="file" type="file" accept="application/json,.json" hidden>
         <p class="hint">Drafts stay in this browser session. Closing Chrome clears them. Text goes only to the destination you choose.</p>
       </section>

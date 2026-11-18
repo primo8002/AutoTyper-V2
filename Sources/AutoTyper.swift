@@ -4,9 +4,9 @@ import ApplicationServices
 import Carbon
 
 private enum Palette {
-    static let background = Color(red: 0.055, green: 0.075, blue: 0.10)
-    static let panel = Color(red: 0.10, green: 0.13, blue: 0.17)
-    static let accent = Color(red: 0.56, green: 0.91, blue: 0.76)
+    static let background = Color(red: 0.045, green: 0.055, blue: 0.085)
+    static let panel = Color(red: 0.085, green: 0.105, blue: 0.15)
+    static let accent = Color(red: 0.62, green: 0.90, blue: 0.80)
     static let muted = Color(red: 0.60, green: 0.67, blue: 0.70)
 }
 
@@ -251,9 +251,10 @@ final class TyperModel: ObservableObject {
 private struct Surface<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
-        content.padding(22).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.panel, in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.07)))
+        content.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+            .background(LinearGradient(colors: [Palette.panel, Palette.panel.opacity(0.78)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.08)))
+            .shadow(color: .black.opacity(0.12), radius: 16, y: 8)
     }
 }
 
@@ -261,16 +262,16 @@ struct AutoTyperView: View {
     @StateObject private var model = TyperModel()
     var body: some View {
         ZStack {
-            Palette.background.ignoresSafeArea()
+            LinearGradient(colors: [Color(red: 0.08, green: 0.13, blue: 0.17), Palette.background, Palette.background], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 7) {
-                            Text("AUTOTYPER / 02").font(.system(size: 11, weight: .bold, design: .monospaced))
+                            Text("AUTOTYPER  /  DESKTOP").font(.system(size: 11, weight: .bold, design: .monospaced))
                                 .tracking(2.5).foregroundStyle(Palette.accent)
-                            Text("Make words move.").font(.system(size: 35, weight: .semibold, design: .rounded))
+                            Text("Your words. In motion.").font(.system(size: 35, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white)
-                            Text("A focused typing studio for your Mac.").font(.system(size: 14))
+                            Text("Set your rhythm. Let the words flow.").font(.system(size: 14))
                                 .foregroundStyle(Palette.muted)
                         }
                         Spacer()
@@ -298,7 +299,7 @@ struct AutoTyperView: View {
                                     .font(.system(size: 15, design: .rounded)).foregroundStyle(.white)
                                     .disabled(model.isBusy)
                             }
-                            .frame(minHeight: 180)
+                            .frame(minHeight: 145)
                             .padding(12)
                             .background(Palette.background.opacity(0.75), in: RoundedRectangle(cornerRadius: 13))
                         }
@@ -307,7 +308,7 @@ struct AutoTyperView: View {
                     Surface {
                         VStack(alignment: .leading, spacing: 19) {
                             HStack {
-                                Text("Typing pace").font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
+                                Label("Typing rhythm", systemImage: "waveform.path").font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
                                 Spacer()
                                 Text("\(Int(model.wpm)) WPM").font(.system(size: 15, weight: .bold, design: .monospaced))
                                     .foregroundStyle(Palette.accent)
@@ -368,7 +369,7 @@ struct AutoTyperView: View {
                                 .font(.system(size: 11)).foregroundStyle(Palette.muted)
                         }
                     }
-                }.padding(30).frame(maxWidth: 780)
+                }.padding(26).frame(maxWidth: 780)
             }
         }
         .overlay {
@@ -414,10 +415,12 @@ struct AutoTyperView: View {
 }
 
 private struct PrimaryButton: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.background)
             .padding(.vertical, 13).padding(.horizontal, 18)
             .background(Palette.accent.opacity(configuration.isPressed ? 0.75 : 1), in: RoundedRectangle(cornerRadius: 11))
+            .opacity(isEnabled ? 1 : 0.38)
     }
 }
 private struct SecondaryButton: ButtonStyle {
@@ -434,5 +437,6 @@ struct AutoTyperApp: App {
         WindowGroup { AutoTyperView() }
             .windowStyle(.hiddenTitleBar)
             .windowResizability(.contentMinSize)
+            .defaultSize(width: 720, height: 850)
     }
 }
