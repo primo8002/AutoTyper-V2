@@ -1,97 +1,49 @@
+<img src="browser-extension/icons/icon-128.png" alt="" width="64" height="64">
+
 # AutoTyper V2
 
-A typing studio for macOS and Chrome. Paste your text, choose a rhythm, and let AutoTyper enter it at your chosen pace.
+AutoTyper types a plain-text draft into a field you choose. Use the **Mac app** to type into a desktop editor, or the **Chrome extension** to keep typing into one browser tab while you work elsewhere. You can install either one independently.
 
-## Two ways to type
+Both versions offer a five-second countdown and a speed range of **15–150 words per minute**. Choose a speed preset or adjust the slider. Turn on natural pauses for breaks between sentences, or enable mistakes to have AutoTyper occasionally type a nearby key, backspace, and correct it. The studio shows an estimated duration, progress, and controls to pause or stop a run.
 
 | | Mac app | Chrome extension |
 |---|---|---|
-| Destination | The currently focused app | One selected browser tab |
-| Work elsewhere during typing | Keep the destination focused | Switch tabs or use another app |
-| Setup | macOS Accessibility permission | Load the companion extension in Chrome |
-| Emergency stop | Control–Option–Command–Escape | Command–Shift–Y on Mac; Ctrl–Shift–Y elsewhere, while Chrome is active |
+| Requirements | macOS 14 or later and Apple Command Line Tools to build | Chrome 118 or later |
+| During a run | Keep the destination field focused | Keep the destination tab open and the computer awake |
+| Stop shortcut | `Control + Option + Command + Esc` from any app | `Command + Shift + Y` on Mac or `Ctrl + Shift + Y` elsewhere, while Chrome is active |
 
-## Features
+## Install the Mac app
 
-- **Adjustable speed:** 15–150 WPM, with varied character timing and short bursts.
-- **Five-second countdown:** time to prepare before typing begins.
-- **Optional mistakes and repairs:** nearby-key slips followed by Backspace corrections, with adjustable frequency.
-- **Natural pauses:** optional breaks around punctuation and paragraphs.
-- **Session controls:** progress, approximate duration, pause, resume, and stop.
-- **Background browser typing:** the extension locks onto one tab and editor, so switching tabs does not redirect your text.
-- **Destination checks:** browser sessions stop when the tab closes, reloads, navigates, or loses its editor.
-- **Local drafts:** extension drafts last for the browser session. No AutoTyper account or server is required. Text is delivered to the destination app or website you choose.
-
-## Mac app
-
-Open `AutoTyper.app` in Applications or use the Desktop shortcut. On the first run, enable AutoTyper in **System Settings → Privacy & Security → Accessibility**.
-
-1. Paste your text and adjust the speed, mistakes, and pauses.
-2. Click **Start typing**.
-3. During the five-second countdown, click the destination text field.
-4. Keep that app and field focused until the run finishes.
-
-To build from source, install Apple's command line tools, then run:
+If you need the Apple Command Line Tools, run `xcode-select --install` and finish the installer. Then clone the repository and build the app in Terminal.
 
 ```sh
+git clone https://github.com/primo8002/AutoTyper-V2.git
+cd AutoTyper-V2
 ./scripts/build.sh
-open dist/AutoTyper.app
 ```
 
-The app requires macOS 14 or newer. The build uses the architecture of the Mac running it.
+1. In Finder, open the generated `dist` folder. Drag `AutoTyper.app` into **Applications** and launch that copy.
+2. For a first run, open a blank document in TextEdit. Paste a short sample into AutoTyper and click **Start typing**.
+3. If the **Keyboard access** dialog appears, click **Request access** and enable AutoTyper in **System Settings → Privacy & Security → Accessibility**. Return to AutoTyper and click **Start typing** again.
+4. During the countdown, click where the sample should appear in TextEdit. Keep that field focused until typing finishes. In apps where Return sends a message, a line break in your draft can send it.
 
-## Chrome extension
+## Install the Chrome extension
 
-Requires Chrome 118 or newer.
+1. Clone or download and unzip this repository. Keep the extracted files where you want Chrome to load them from.
+2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select the `browser-extension` folder. Pin AutoTyper to the toolbar for easy access.
+3. Open a page with an editable field and click the insertion point with no text selected. Click the AutoTyper toolbar icon to open the studio.
+4. Confirm the destination tab, paste your text, and click **Start in 5 seconds**. You can now switch tabs or apps. Leave the cursor in place in the destination editor.
 
-1. Open `chrome://extensions` and enable **Developer mode**.
-2. Click **Load unpacked** and select this project's `browser-extension` folder.
-3. Pin AutoTyper to the toolbar.
-4. Open your destination page and click the insertion point, with no text selected.
-5. Click the AutoTyper toolbar icon to open the browser studio.
-6. Confirm the destination, paste your text, choose your settings, and click **Start in 5 seconds**.
-7. Switch to another tab or app. Keep the destination tab open, Chrome running, and your computer awake.
+The extension supports text inputs, text areas, and editable page regions. **Google Docs support is experimental.** Try a short sample in a blank document first. Password fields, read-only fields, Chrome settings pages, and editors inside cross-origin frames are unsupported. A run stops if the destination tab closes or navigates. After a run, check the destination's save indicator before closing the tab.
 
-Use **Pause**, **Resume**, or **Stop** in the studio. Chrome's debugger banner also lets you end the connection. Configure the extension's stop shortcut at `chrome://extensions/shortcuts` if the default conflicts with another shortcut.
+## Privacy and permissions
 
-After changing extension files, click **Reload** on its card at `chrome://extensions`, then reopen the studio.
+The Mac app uses Accessibility permission to send keystrokes. The Chrome extension uses `tabs` to list destinations, `debugger` to deliver input to the chosen tab, and `storage` to keep the draft and session status in browser memory. Chrome displays a debugging banner while the extension is attached. Closing Chrome clears the session draft.
 
-## Compatibility and permissions
+AutoTyper requires no account and sends no drafts to an AutoTyper service. The app or website receiving the text handles it according to its own settings.
 
-The Mac app sends plain-text keyboard input to the foreground app. Return may submit a message in chat fields. Destination autocorrect, formatting, or editor shortcuts can change the result.
+## Troubleshooting
 
-The extension uses Chrome's debugger permission to send input directly to the chosen tab. Chrome displays a debugging banner during the session. Standard text fields and editable page regions are supported; Google Docs support is experimental and should be checked with a short sample in a blank document. Password fields, read-only fields, browser settings pages, and cross-origin iframe editors are unsupported. Opening DevTools on the destination may interrupt a session.
+**Accessibility is enabled, but Start still asks for access.** An existing permission entry can point to an older build or another copy. Quit AutoTyper, remove its old entry with **−** in Accessibility settings, then use **+** to add the copy in Applications. Enable it and reopen that same copy. The build script signs and verifies the bundle locally. Rebuilding with the default ad hoc signature can require fresh approval. Developers with a signing certificate can set `AUTOTYPER_SIGNING_IDENTITY` when running the build script to use the same identity across releases.
 
-Avoid moving the cursor or editing the destination during a run. Stopping during a correction can leave a partial word or typo; inspect the result before restarting. Browser progress counts delivered operations and does not confirm that a document has saved to its server.
-
-## Project layout
-
-- `Sources/AutoTyper.swift` — native app interface and typing engine.
-- `browser-extension/` — browser studio, background worker, and typing engine.
-- `scripts/build.sh` — builds `dist/AutoTyper.app`.
-
-## Interface and app icon
-
-Version 0.3 introduces a light writing canvas, a dark sidebar, a dedicated settings panel, and persistent session controls. Choose **Relaxed**, **Balanced**, or **Quick** to set the typing speed, then adjust it with the slider. The Mac app and Chrome extension share an orange A-and-cursor icon.
-
-After updating, quit and reopen the Mac app. In Chrome, reload the extension at `chrome://extensions`, close any old studio tabs, and reopen AutoTyper. The new sidebar displays **v0.3**. See [design and icon notes](docs/DESIGN.md) for asset generation and troubleshooting older copies.
-
-## Accessibility enabled, but typing is still blocked
-
-macOS grants permission to a specific signed app. An enabled entry can refer to an older build or another copy. AutoTyper now checks permission to post keyboard events without repeatedly showing the system prompt, and checks again when returning from Settings.
-
-If the entry is stale:
-
-1. Quit AutoTyper.
-2. Open **System Settings → Privacy & Security → Accessibility**.
-3. Select the old AutoTyper entry and remove it with **−**.
-4. Use **+** to add `/Applications/AutoTyper.app`, then enable it.
-5. Reopen the installed app and try Start again.
-
-The build script signs and verifies the complete app bundle. By default it uses a local ad hoc signature; macOS may require permission again after a rebuild. To retain a certificate-backed identity across updates, configure a code-signing certificate and build every release with the same identity:
-
-```sh
-AUTOTYPER_SIGNING_IDENTITY="Your signing identity" ./scripts/build.sh
-```
-
-The app cannot grant its own Accessibility permission or silently transfer an older build's approval.
+**Chrome shows the old studio after an update.** Click **Reload** on AutoTyper's card at `chrome://extensions`, close any open studio tabs, and launch the extension again from the destination. If its stop shortcut conflicts with another extension, change it at `chrome://extensions/shortcuts`.
