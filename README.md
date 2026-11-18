@@ -31,7 +31,7 @@ The app types plain text into the active field. It does not guarantee that a tar
 3. **Editing workflow:** saved drafts, multiple text blocks, per-block destinations, and formatted text where the target app exposes a dependable editing API.
 4. **Optional advanced controls:** saved pacing presets, break frequency and duration, correction timing, live speed changes, completion notifications, and target-aware estimated finish times.
 
-Duey AI currently offers variable WPM, mistakes, correction speed, breaks, progress, pause/resume, an emergency shortcut, and multi-block typing in supported web editors. Its browser extension also supports rich formatting and background typing for certain targets. This app implements the useful local desktop subset first; target-specific and cloud features are future work.
+
 
 ## Sources
 
